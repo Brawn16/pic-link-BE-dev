@@ -1,4 +1,5 @@
-const spawn = require("child-process-promise").spawn;
+//const spawn = require("child-process-promise").spawn;
+const exec = require("child-process-promise").exec;
 const path = require("path");
 const os = require("os");
 const fs = require("fs");
@@ -10,7 +11,9 @@ exports.createWaterMarkedImage = imageURL => {
   const metadata = { contentType: "image/jpeg" };
   const tempFilePath = path.join(os.tmpdir(), fileName);
   const destination = `/watermarked/${fileName}`;
-  return spawn("convert", [imageURL, "-resize", "100x100", tempFilePath])
+  return exec(
+    `composite -watermark 30% -gravity south ${imageURL} ${imageURL} ${tempFilePath}`
+  )
     .then(() => {
       console.log("Image downloaded locally to", tempFilePath);
       return bucket.upload(tempFilePath, {
