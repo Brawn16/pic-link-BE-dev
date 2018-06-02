@@ -2,12 +2,10 @@ const spawn = require("child-process-promise").spawn;
 const path = require("path");
 const os = require("os");
 const fs = require("fs");
-
-const gcs = require("@google-cloud/storage")();
 const admin = require("firebase-admin");
 
 exports.createWaterMarkedImage = imageURL => {
-  const bucket = gcs.bucket("pic-link-dev.appspot.com");
+  const bucket = admin.storage().bucket();
   const fileName = imageURL.match(/([^/]+$)/)[0];
   const metadata = { contentType: "image/jpeg" };
   const tempFilePath = path.join(os.tmpdir(), fileName);
@@ -23,8 +21,7 @@ exports.createWaterMarkedImage = imageURL => {
     .then(() => {
       console.log("uploaded to watermarked");
       const unlinkProm = fs.unlinkSync(tempFilePath);
-      const ref = admin.storage().bucket();
-      const getURLProm = ref.file(destination).getSignedUrl({
+      const getURLProm = bucket.file(destination).getSignedUrl({
         action: "read",
         expires: "01-01-2019"
       });
