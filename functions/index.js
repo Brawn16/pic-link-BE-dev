@@ -2,6 +2,7 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin").initializeApp();
 const db = admin.firestore();
 const { findMatches } = require("./utils/kairos");
+const { createNewImageDocs } = require("./utils/db");
 const kairosGallery = "main";
 
 // Create and Deploy Your First Cloud Functions
@@ -15,10 +16,14 @@ exports.handlePhotographerUploads = functions.firestore
 
     if (currImgs.length > prevImgs.length) {
       const newImgs = currImgs.slice(prevImgs.length);
-      return findMatches(newImgs, kairosGallery).then(matches => {
-        console.log(matches);
-        return null;
-      });
+      return findMatches(newImgs, kairosGallery)
+        .then(imgsWithMatches => {
+          return createNewImageDocs(imgsWithMatches);
+        })
+        .then(imgDocRefs => {
+          console.log(imgDocRefs);
+          return null;
+        });
     } else return null;
     // matchImages;
     // createNewImageDoc;
