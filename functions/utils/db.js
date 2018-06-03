@@ -8,11 +8,15 @@ const createImageDoc = imageObj => {
   });
 };
 
-exports.updateUserImages = (imagePath, userId, field) => {
+exports.updateUserImages = (doc, userId, field) => {
+  const images = Array.isArray(doc) ? doc : [doc];
   const userRef = db.collection("users").doc(userId);
   return userRef.get().then(doc => {
     const currImgs = doc.data().matchedImages[field];
-    return userRef.set({ matchedImages: { [field]: [...currImgs, imagePath] } });
+    return userRef.set(
+      { matchedImages: { [field]: [...currImgs, ...images] } },
+      { merge: true }
+    );
   });
 };
 
@@ -32,10 +36,35 @@ exports.assignUsersWMImages = imageId => {
     .get()
     .then(doc => {
       const { matchedUserIds } = doc.data();
-      const imagePath = doc.data().watermarked;
+      const image = { imageId, path: doc.data().watermarked };
 
       return Promise.all(
-        matchedUserIds.map(uid => this.updateUserImages(imagePath, uid, "watermarked"))
+        matchedUserIds.map(uid => this.updateUserImages(image, uid, "watermarked"))
       );
+    });
+};
+
+exports.getPathsForAllImgs = imgType => {
+  return db
+    .collection("images")
+    .get()
+    .then(query => {
+      console.log("queryDocs: ", query.docs[0]);
+      return query.docs.map(imgDoc => imgDoc.data()[imgType]);
+    });
+};
+
+exports.findWaterMarkedByOriginal = originalPath => {
+  console.log("originalPath: ", originalPath);
+  const ref = db.collection("images");
+  return ref
+    .where("original", "==", originalPath)
+    .get()
+    .then(query => {
+      const imageId = query.docs[0]._ref.id;
+      const path = query.docs[0].data().watermarked;
+      //const refPath = query.docs[0]._ref.DocumentReference._referencePath;
+      //console.log("refPath: ", refPath);
+      return { imageId, path };
     });
 };

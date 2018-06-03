@@ -24,3 +24,10 @@ const matchFacesToPic = (image, gallery_name) => {
 exports.findMatches = (imageArr, gallery_name) => {
   return Promise.all(imageArr.map(url => matchFacesToPic(url, gallery_name)));
 };
+
+exports.enroll = params => client.enroll(params);
+
+exports.removeGallery = gallery_name =>
+  client.galleryRemove({
+    gallery_name
+  });

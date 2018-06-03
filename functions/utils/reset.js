@@ -50,3 +50,5 @@ findMatches = (image, gallery_name) => {
 //   .enroll(params)
 //   .then(console.log)
 //   .catch(console.log);
+
+deleteAllGalleries();
