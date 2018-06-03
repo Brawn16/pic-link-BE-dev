@@ -9,7 +9,7 @@ admin.initializeApp({
 const functions = require("firebase-functions");
 const db = admin.firestore();
 const { findMatches } = require("./utils/kairos");
-const { createNewImageDocs, updateDoc } = require("./utils/db");
+const { createNewImageDocs, updateDoc, assignUsersWMImages } = require("./utils/db");
 const { createWaterMarkedImage } = require("./utils/image-magick");
 const kairosGallery = "main";
 
@@ -25,10 +25,6 @@ exports.handlePhotographerUploads = functions.firestore
         createNewImageDocs(imgsWithMatches)
       );
     } else return null;
-    // matchImages;
-    // createNewImageDoc;
-    // createWatermarkedVersion;
-    // updateUserImages;
   });
 
 exports.addWaterMarkedImage = functions.firestore
@@ -41,8 +37,9 @@ exports.addWaterMarkedImage = functions.firestore
         const { imageId } = ctx.params;
         return updateDoc("images", imageId, params);
       })
-      .then(snap => {
-        console.log("updated image with watermarked version");
-        return null;
-      });
+      .then(([docId]) => {
+        console.log("updateDoc: ", docId);
+        return assignUsersWMImages(docId);
+      })
+      .then(() => console.log("updated user images!"));
   });

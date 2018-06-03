@@ -1,4 +1,6 @@
-const { appId, appKey } = require("../config");
+const {
+  kairosConfig: { appId, appKey }
+} = require("../config");
 
 const Kairos = require("kairos-api");
 const client = new Kairos(appId, appKey);
@@ -33,7 +35,7 @@ findMatches = (image, gallery_name) => {
     .catch(console.log);
 };
 
-findMatches("http://radustefan.net/proj2/IMG_5155.JPG", "main");
+//findMatches("http://radustefan.net/proj2/IMG_5155.JPG", "main");
 
 //client.galleryListAll().then(console.log);
 
