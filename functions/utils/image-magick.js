@@ -1,5 +1,4 @@
-//const spawn = require("child-process-promise").spawn;
-const exec = require("child-process-promise").exec;
+const { exec } = require("child-process-promise");
 const path = require("path");
 const os = require("os");
 const fs = require("fs");
@@ -9,11 +8,20 @@ exports.createWaterMarkedImage = imageURL => {
   const bucket = admin.storage().bucket();
   const fileName = imageURL.match(/([^/]+$)/)[0];
   const metadata = { contentType: "image/jpeg" };
-  const tempFilePath = path.join(os.tmpdir(), fileName);
+  const tempDir = os.tmpdir();
+  const tempFilePath = path.join(tempDir, fileName);
+  const tempLogoPath = path.join(tempDir, "logo.png");
   const destination = `/watermarked/${fileName}`;
-  return exec(
-    `composite -watermark 30% -gravity south ${imageURL} ${imageURL} ${tempFilePath}`
-  )
+  const logoPath = bucket.file("/logo/pic-link-logo1.png").name;
+
+  return bucket
+    .file(logoPath)
+    .download({ destination: tempLogoPath })
+    .then(() => {
+      return exec(
+        `composite -watermark 10% -gravity center ${tempLogoPath} ${imageURL} ${tempFilePath}`
+      );
+    })
     .then(() => {
       console.log("Image downloaded locally to", tempFilePath);
       return bucket.upload(tempFilePath, {
@@ -23,12 +31,12 @@ exports.createWaterMarkedImage = imageURL => {
     })
     .then(() => {
       console.log("uploaded to watermarked");
-      const unlinkProm = fs.unlinkSync(tempFilePath);
+      const unlinkProms = [tempFilePath, tempLogoPath].map(file => fs.unlinkSync(file));
       const getURLProm = bucket.file(destination).getSignedUrl({
         action: "read",
         expires: "01-01-2019"
       });
-      return Promise.all([getURLProm, unlinkProm]);
+      return Promise.all([getURLProm, unlinkProms]);
     })
     .then(([urlList]) => {
       return urlList[0];

@@ -11,3 +11,8 @@ const createImageDoc = imageObj => {
 exports.createNewImageDocs = images => {
   return Promise.all(images.map(img => createImageDoc(img)));
 };
+
+exports.updateDoc = (collection, docId, params) => {
+  const ref = db.collection(collection).doc(docId);
+  return ref.set(params, { merge: true });
+};

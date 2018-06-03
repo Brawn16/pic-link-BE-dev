@@ -1,4 +1,6 @@
-const { appId, appKey } = require("../config");
+const {
+  kairosConfig: { appId, appKey }
+} = require("../config");
 
 const Kairos = require("kairos-api");
 const client = new Kairos(appId, appKey);

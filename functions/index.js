@@ -1,20 +1,17 @@
 const admin = require("firebase-admin");
 
-const serviceAccount = require("./config/serviceAccountKey.json");
+const { serviceAccountKey } = require("./config");
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
+  credential: admin.credential.cert(serviceAccountKey),
   storageBucket: "pic-link-dev.appspot.com"
 });
 const functions = require("firebase-functions");
 const db = admin.firestore();
 const { findMatches } = require("./utils/kairos");
-const { createNewImageDocs } = require("./utils/db");
+const { createNewImageDocs, updateDoc } = require("./utils/db");
 const { createWaterMarkedImage } = require("./utils/image-magick");
 const kairosGallery = "main";
-
-// Create and Deploy Your First Cloud Functions
-// https://firebase.google.com/docs/functions/write-firebase-functions
 
 exports.handlePhotographerUploads = functions.firestore
   .document("photographers/{photographerId}")
@@ -37,8 +34,15 @@ exports.handlePhotographerUploads = functions.firestore
 exports.addWaterMarkedImage = functions.firestore
   .document("images/{imageId}")
   .onCreate((snap, ctx) => {
-    return createWaterMarkedImage(snap.data().original).then(waterMarkedImg => {
-      console.log("success: ", waterMarkedImg);
-      return null;
-    });
+    return createWaterMarkedImage(snap.data().original)
+      .then(waterMarkedImg => {
+        console.log("success: ", waterMarkedImg);
+        const params = { watermarked: waterMarkedImg };
+        const { imageId } = ctx.params;
+        return updateDoc("images", imageId, params);
+      })
+      .then(snap => {
+        console.log("updated image with watermarked version");
+        return null;
+      });
   });
