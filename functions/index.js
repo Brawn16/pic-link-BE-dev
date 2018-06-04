@@ -70,9 +70,10 @@ exports.enrollUserProfilePic = functions.firestore
       return enroll(params)
         .then(data => getPathsForAllImgs("original"))
         .then(images => findMatches(images, userId))
-        .then(matches =>
-          Promise.all(matches.map(match => findWaterMarkedByOriginal(match.imageURL)))
-        )
+        .then(imgList => {
+          const matches = imgList.filter(img => img.matchedUserIds.length);
+          return Promise.all(matches.map(match => findWaterMarkedByOriginal(match.imageURL)));
+        })
         .then(waterMarkedImgs => updateUserImages(waterMarkedImgs, userId, "watermarked"))
         .then(() => removeGallery(userId))
         .then(() => {

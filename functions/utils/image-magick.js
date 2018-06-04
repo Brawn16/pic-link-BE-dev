@@ -19,7 +19,7 @@ exports.createWaterMarkedImage = imageURL => {
     .download({ destination: tempLogoPath })
     .then(() => {
       return exec(
-        `composite -watermark 10% -gravity center ${tempLogoPath} ${imageURL} ${tempFilePath}`
+        `composite -watermark 1% -gravity center ${tempLogoPath} ${imageURL} ${tempFilePath}`
       );
     })
     .then(() => {

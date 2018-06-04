@@ -51,4 +51,9 @@ findMatches = (image, gallery_name) => {
 //   .then(console.log)
 //   .catch(console.log);
 
-deleteAllGalleries();
+//deleteAllGalleries();
+
+// client.galleryRemoveSubject({
+//   gallery_name: "main",
+//   subject_id: "0Hq2OfW308GR45DIzgzr"
+// });
