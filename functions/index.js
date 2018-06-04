@@ -39,6 +39,7 @@ exports.handlePhotographerUploads = functions.firestore
 exports.addWaterMarkedImage = functions.firestore
   .document("images/{imageId}")
   .onCreate((snap, ctx) => {
+    if (snap.data().watermarked) return null;
     return createWaterMarkedImage(snap.data().original)
       .then(waterMarkedImg => {
         console.log("success: ", waterMarkedImg);
@@ -56,7 +57,7 @@ exports.addWaterMarkedImage = functions.firestore
 exports.enrollUserProfilePic = functions.firestore
   .document("users/{userId}")
   .onWrite((event, ctx) => {
-    if (event.before) if (!event.after.exists) return null;
+    if (!event.after.exists) return null;
     const { userId } = ctx.params;
     const currImg = event.after.data().profilePic;
     const prevImg = event.before.exists ? event.before.data().profilePic : "";
