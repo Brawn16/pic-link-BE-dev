@@ -4,7 +4,8 @@ const os = require("os");
 const fs = require("fs");
 const admin = require("firebase-admin");
 
-exports.createWaterMarkedImage = imageURL => {
+exports.createWaterMarkedImage = imagePath => {
+  console.log("imagePath: ", imagePath);
   const bucket = admin.storage().bucket();
   const fileName = imageURL.match(/([^/]+$)/)[0];
   const metadata = { contentType: "image/jpeg" };
@@ -17,9 +18,10 @@ exports.createWaterMarkedImage = imageURL => {
   return bucket
     .file(logoPath)
     .download({ destination: tempLogoPath })
+    .then(() => bucket.file(imagePath).download({ destination: tempFilePath }))
     .then(() => {
       return exec(
-        `composite -watermark 1% -gravity center ${tempLogoPath} ${imageURL} ${tempFilePath}`
+        `composite -watermark 1% -gravity center ${tempLogoPath} ${tempFilePath} ${tempFilePath}`
       );
     })
     .then(() => {

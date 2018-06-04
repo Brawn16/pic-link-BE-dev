@@ -1,9 +1,10 @@
 const db = require("firebase-admin").firestore();
 
 const createImageDoc = imageObj => {
-  const { matchedUserIds } = imageObj;
+  const { matchedUserIds, localPath } = imageObj;
   return db.collection("images").add({
     original: imageObj.imageURL,
+    localPath,
     matchedUserIds
   });
 };
@@ -47,6 +48,14 @@ exports.createNewImageDocs = images => {
 exports.updateDoc = (collection, docId, params) => {
   const ref = db.collection(collection).doc(docId);
   return Promise.all([docId, ref.set(params, { merge: true })]);
+};
+
+exports.updateDocArray = (collection, docId, prop, item) => {
+  const ref = db.collection(collection).doc(docId);
+  return ref.get().then(doc => {
+    const currArr = doc.data()[prop];
+    return ref.set({ [key]: [...currArr, item] }, { merge: true });
+  });
 };
 
 exports.assignUsersWMImages = imageId => {

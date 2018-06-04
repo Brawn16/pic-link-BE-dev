@@ -13,11 +13,13 @@ const { findMatches, enroll, removeGallery } = require("./utils/kairos");
 const {
   createNewImageDocs,
   updateDoc,
+  updateDocArray,
   updateUserImages,
   assignUsersWMImages,
   getPathsForAllImgs,
   findWaterMarkedByOriginal,
-  createUserDoc
+  createUserDoc,
+  getDownloadURL
 } = require("./utils/db");
 const { createWaterMarkedImage } = require("./utils/image-magick");
 
@@ -25,6 +27,30 @@ const kairosGallery = "main";
 
 exports.insertUserInDB = functions.auth.user().onCreate(ev => {
   return createUserDoc(ev.uid, ev.email).then(() => "user inserted");
+});
+
+exports.handleStorageUploads = functions.storage.object().onFinalize(ev => {
+  const filePath = ev.name;
+  const arr = filePath.split("/");
+  const [collection, uid, path] = arr.slice(arr.length - 3);
+  console.log("collection: ", collection);
+  console.log("uid: ", uid);
+  console.log("filePath: ", filePath);
+
+  return admin
+    .storage()
+    .bucket()
+    .file(filePath)
+    .getSignedUrl({
+      action: "read",
+      expires: "01-01-2019"
+    })
+    .then(([url]) => {
+      if (collection === "users") return updateDoc(collection, uid, url);
+      else if (collection === "photographers")
+        return updateDocArray(collection, uid, "uploadedImages", { localPath: filePath, url });
+      return null;
+    });
 });
 
 exports.handlePhotographerUploads = functions.firestore
@@ -35,9 +61,11 @@ exports.handlePhotographerUploads = functions.firestore
 
     if (currImgs.length > prevImgs.length) {
       const newImgs = currImgs.slice(prevImgs.length);
-      return findMatches(newImgs, kairosGallery).then(imgsWithMatches =>
-        createNewImageDocs(imgsWithMatches)
-      );
+      const urls = newImgs.map(img => img.url);
+      return findMatches(urls, kairosGallery).then(imgsWithMatches => {
+        imgsWithMatches.forEach((imgObj, i) => (imgObj.localPath = newImgs[i].localPath));
+        return createNewImageDocs(imgsWithMatches);
+      });
     } else return null;
   });
 
@@ -45,7 +73,9 @@ exports.addWaterMarkedImage = functions.firestore
   .document("images/{imageId}")
   .onCreate((snap, ctx) => {
     if (snap.data().watermarked) return null;
-    return createWaterMarkedImage(snap.data().original)
+    const { original } = snap.data();
+    const { imageId } = ctx.params;
+    return createWaterMarkedImage(original, imageId)
       .then(waterMarkedImg => {
         console.log("success: ", waterMarkedImg);
         const params = { watermarked: waterMarkedImg };
