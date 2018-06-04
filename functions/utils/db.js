@@ -8,6 +8,26 @@ const createImageDoc = imageObj => {
   });
 };
 
+exports.createUserDoc = (uid, email) => {
+  if (email === "photographer@piclink.com") {
+    return db
+      .collection("photographers")
+      .doc(uid)
+      .set({ uploadedImages: [] });
+  } else {
+    return db
+      .collection("users")
+      .doc(uid)
+      .set({
+        profilePic: "",
+        matchedImages: {
+          watermarked: [],
+          purchased: []
+        }
+      });
+  }
+};
+
 exports.updateUserImages = (doc, userId, field) => {
   const images = Array.isArray(doc) ? doc : [doc];
   const userRef = db.collection("users").doc(userId);

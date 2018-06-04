@@ -16,11 +16,16 @@ const {
   updateUserImages,
   assignUsersWMImages,
   getPathsForAllImgs,
-  findWaterMarkedByOriginal
+  findWaterMarkedByOriginal,
+  createUserDoc
 } = require("./utils/db");
 const { createWaterMarkedImage } = require("./utils/image-magick");
 
 const kairosGallery = "main";
+
+exports.insertUserInDB = functions.auth.user().onCreate(ev => {
+  return createUserDoc(ev.uid, ev.email).then(() => "user inserted");
+});
 
 exports.handlePhotographerUploads = functions.firestore
   .document("photographers/{photographerId}")
