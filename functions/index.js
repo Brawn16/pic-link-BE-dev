@@ -73,9 +73,9 @@ exports.addWaterMarkedImage = functions.firestore
   .document("images/{imageId}")
   .onCreate((snap, ctx) => {
     if (snap.data().watermarked) return null;
-    const { original } = snap.data();
+    const { localPath } = snap.data();
     const { imageId } = ctx.params;
-    return createWaterMarkedImage(original, imageId)
+    return createWaterMarkedImage(localPath)
       .then(waterMarkedImg => {
         console.log("success: ", waterMarkedImg);
         const params = { watermarked: waterMarkedImg };

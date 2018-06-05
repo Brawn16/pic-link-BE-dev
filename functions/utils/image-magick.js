@@ -7,21 +7,22 @@ const admin = require("firebase-admin");
 exports.createWaterMarkedImage = imagePath => {
   console.log("imagePath: ", imagePath);
   const bucket = admin.storage().bucket();
-  const fileName = imageURL.match(/([^/]+$)/)[0];
+  const fileName = imagePath.match(/([^/]+$)/)[0];
   const metadata = { contentType: "image/jpeg" };
   const tempDir = os.tmpdir();
   const tempFilePath = path.join(tempDir, fileName);
   const tempLogoPath = path.join(tempDir, "logo.png");
   const destination = `/watermarked/${fileName}`;
-  const logoPath = bucket.file("/logo/pic-link-logo1.png").name;
+  const logoPath = bucket.file("/logo/pic-link-logo2.png").name;
+  const imgFullPath = bucket.file(imagePath).name;
 
   return bucket
     .file(logoPath)
     .download({ destination: tempLogoPath })
-    .then(() => bucket.file(imagePath).download({ destination: tempFilePath }))
+    .then(() => bucket.file(imgFullPath).download({ destination: tempFilePath }))
     .then(() => {
       return exec(
-        `composite -watermark 1% -gravity center ${tempLogoPath} ${tempFilePath} ${tempFilePath}`
+        `composite -watermark 50% -gravity center ${tempLogoPath} ${tempFilePath} ${tempFilePath}`
       );
     })
     .then(() => {

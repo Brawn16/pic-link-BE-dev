@@ -54,7 +54,7 @@ exports.updateDocArray = (collection, docId, prop, item) => {
   const ref = db.collection(collection).doc(docId);
   return ref.get().then(doc => {
     const currArr = doc.data()[prop];
-    return ref.set({ [key]: [...currArr, item] }, { merge: true });
+    return ref.set({ [prop]: [...currArr, item] }, { merge: true });
   });
 };
 
