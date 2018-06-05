@@ -5,7 +5,6 @@ const fs = require("fs");
 const admin = require("firebase-admin");
 
 exports.createWaterMarkedImage = imagePath => {
-  console.log("imagePath: ", imagePath);
   const bucket = admin.storage().bucket();
   const fileName = imagePath.match(/([^/]+$)/)[0];
   const metadata = { contentType: "image/jpeg" };
@@ -26,14 +25,12 @@ exports.createWaterMarkedImage = imagePath => {
       );
     })
     .then(() => {
-      console.log("Image downloaded locally to", tempFilePath);
       return bucket.upload(tempFilePath, {
         destination,
         metadata
       });
     })
     .then(() => {
-      console.log("uploaded to watermarked");
       const unlinkProms = [tempFilePath, tempLogoPath].map(file => fs.unlinkSync(file));
       const getURLProm = bucket.file(destination).getSignedUrl({
         action: "read",

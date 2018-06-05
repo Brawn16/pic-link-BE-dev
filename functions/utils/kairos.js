@@ -4,18 +4,22 @@ const {
 
 const Kairos = require("kairos-api");
 const client = new Kairos(appId, appKey);
+const { removeDuplicates } = require("./helpers");
 
 const matchFacesToPic = (image, gallery_name) => {
   return client
     .recognize({ image, gallery_name })
     .then(matchDocs => {
-      const matchedUserIds = matchDocs.body.images.reduce((acc, img) => {
-        if (img.candidates) img.candidates.forEach(c => acc.push(c.subject_id));
-        return acc;
-      }, []);
+      console.log("matchDocs: ", matchDocs);
+      const matchedUserIds = matchDocs.body.Errors
+        ? []
+        : matchDocs.body.images.reduce((acc, img) => {
+            if (img.candidates) img.candidates.forEach(c => acc.push(c.subject_id));
+            return acc;
+          }, []);
       return {
         imageURL: image,
-        matchedUserIds
+        matchedUserIds: removeDuplicates(matchedUserIds)
       };
     })
     .catch(console.log);

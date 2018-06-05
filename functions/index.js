@@ -33,9 +33,6 @@ exports.handleStorageUploads = functions.storage.object().onFinalize(ev => {
   const filePath = ev.name;
   const arr = filePath.split("/");
   const [collection, uid, path] = arr.slice(arr.length - 3);
-  console.log("collection: ", collection);
-  console.log("uid: ", uid);
-  console.log("filePath: ", filePath);
 
   return admin
     .storage()
@@ -77,13 +74,11 @@ exports.addWaterMarkedImage = functions.firestore
     const { imageId } = ctx.params;
     return createWaterMarkedImage(localPath)
       .then(waterMarkedImg => {
-        console.log("success: ", waterMarkedImg);
         const params = { watermarked: waterMarkedImg };
         const { imageId } = ctx.params;
         return updateDoc("images", imageId, params);
       })
       .then(([docId]) => {
-        console.log("updateDoc: ", docId);
         return assignUsersWMImages(docId);
       })
       .then(() => console.log("updated user images!"));

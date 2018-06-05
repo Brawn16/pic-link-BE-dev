@@ -25,7 +25,7 @@ const removeOneGallery = gallery_name =>
     })
     .then(res => console.log(res));
 
-findMatches = (image, gallery_name) => {
+const findMatches = (image, gallery_name) => {
   return client
     .recognize({ image, gallery_name })
     .then(matchDocs => {

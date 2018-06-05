@@ -78,7 +78,6 @@ exports.getPathsForAllImgs = imgType => {
     .collection("images")
     .get()
     .then(query => {
-      console.log("queryDocs: ", query.docs[0]);
       return query.docs.map(imgDoc => imgDoc.data()[imgType]);
     });
 };
@@ -92,8 +91,6 @@ exports.findWaterMarkedByOriginal = originalPath => {
     .then(query => {
       const imageId = query.docs[0]._ref.id;
       const path = query.docs[0].data().watermarked;
-      //const refPath = query.docs[0]._ref.DocumentReference._referencePath;
-      //console.log("refPath: ", refPath);
       return { imageId, path };
     });
 };
