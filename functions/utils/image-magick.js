@@ -12,7 +12,7 @@ exports.createWaterMarkedImage = imagePath => {
   const tempFilePath = path.join(tempDir, fileName);
   const tempLogoPath = path.join(tempDir, "logo.png");
   const destination = `/watermarked/${fileName}`;
-  const logoPath = bucket.file("/logo/pic-link-logo2.png").name;
+  const logoPath = bucket.file("/logo/pic-link-logo.png").name;
   const imgFullPath = bucket.file(imagePath).name;
 
   return bucket
@@ -21,7 +21,7 @@ exports.createWaterMarkedImage = imagePath => {
     .then(() => bucket.file(imgFullPath).download({ destination: tempFilePath }))
     .then(() => {
       return exec(
-        `composite -watermark 50% -gravity center ${tempLogoPath} ${tempFilePath} ${tempFilePath}`
+        `composite -watermark 30% -gravity center ${tempLogoPath} ${tempFilePath} ${tempFilePath}`
       );
     })
     .then(() => {

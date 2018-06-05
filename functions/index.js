@@ -30,6 +30,7 @@ exports.insertUserInDB = functions.auth.user().onCreate(ev => {
 });
 
 exports.handleStorageUploads = functions.storage.object().onFinalize(ev => {
+  console.log("ev: ", ev);
   const filePath = ev.name;
   const arr = filePath.split("/");
   const [collection, uid, path] = arr.slice(arr.length - 3);
@@ -43,7 +44,7 @@ exports.handleStorageUploads = functions.storage.object().onFinalize(ev => {
       expires: "01-01-2019"
     })
     .then(([url]) => {
-      if (collection === "users") return updateDoc(collection, uid, url);
+      if (collection === "users") return updateDoc(collection, uid, { profilePic: url });
       else if (collection === "photographers")
         return updateDocArray(collection, uid, "uploadedImages", { localPath: filePath, url });
       return null;

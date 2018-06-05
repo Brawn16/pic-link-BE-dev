@@ -32,8 +32,9 @@ exports.createUserDoc = (uid, email) => {
 exports.updateUserImages = (doc, userId, field) => {
   const images = Array.isArray(doc) ? doc : [doc];
   const userRef = db.collection("users").doc(userId);
-  return userRef.get().then(doc => {
-    const currImgs = doc.data().matchedImages[field];
+  return userRef.get().then(snap => {
+    if (!snap.data()) return null;
+    const currImgs = snap.data().matchedImages[field];
     return userRef.set(
       { matchedImages: { [field]: [...currImgs, ...images] } },
       { merge: true }

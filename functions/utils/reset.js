@@ -41,6 +41,8 @@ const findMatches = (image, gallery_name) => {
 
 //client.galleryView({ gallery_name: "main" }).then(console.log);
 
+//client.galleryRemove({ gallery_name: "cpVsBuKP9ybY8EyfvErd2uzAhQv2" });
+
 // const params = {
 //   image: "http://radustefan.net/proj/IMG_5076.JPG",
 //   subject_id: "raduUserId",
