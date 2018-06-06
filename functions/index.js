@@ -19,14 +19,23 @@ const {
   getPathsForAllImgs,
   findWaterMarkedByOriginal,
   createUserDoc,
-  getDownloadURL
+  getDownloadURL,
+  getImageById,
+  getDoc
 } = require("./utils/db");
 const { createWaterMarkedImage } = require("./utils/image-magick");
 
+const { createStripeCustomer } = require("./utils/stripe");
+
 const kairosGallery = "main";
 
-exports.insertUserInDB = functions.auth.user().onCreate(ev => {
-  return createUserDoc(ev.uid, ev.email).then(() => "user inserted");
+exports.insertUserInDB = functions.auth.user().onCreate(user => {
+  const { uid, email } = user;
+  return createUserDoc(uid, email)
+    .then(() => createStripeCustomer(email))
+    .then(customer => {
+      return updateDoc("users", uid, { stripe: { customerRef: customer } });
+    });
 });
 
 exports.handleStorageUploads = functions.storage.object().onFinalize(ev => {
@@ -115,4 +124,44 @@ exports.enrollUserProfilePic = functions.firestore
     }
 
     return null;
+  });
+
+// exports.handlePayments = functions.firestore.document("payments").onUpdate(ev => {
+//   const { imageId, userId, paymentMade } = ev.data();
+//   if (paymentMade) {
+//     return getImageById(imageId).then(imgDoc => updateUserPurchasedImages(userId, imgDoc));
+//   }
+//   return null;
+// });
+
+//STRIPE
+
+// exports.chargeForImage = functions.firestore.document("payments").onCreate((snap, ctx) => {
+//   const { userId, imageId, source } = snap.data();
+
+//   return getDoc("users", userId)
+//     .then(userDoc => {
+//       const customer = userDoc.data().stripe.customerRef;
+//       const amount = customer.amount;
+//       const idempotencyKey = snap.id;
+//       const charge = { amount, currency: "GBP", customer };
+//       if (source) charge.source = source;
+
+//       return createStripeCharge(charge, { idempotencyKey });
+//     })
+//     .then(res => updateDoc("payments", snap.id, { paymentMade: true }));
+// });
+
+exports.addPaymentSource = functions.firestore
+  .document("users/{userId}/stripe/cardToken")
+  .onWrite((snap, context) => {
+    const source = snap.data();
+    const { userId } = ctx.params;
+    if (source === null) {
+      return null;
+    }
+
+    return getDoc("users", userId).then(userDoc =>
+      createStripeSource(userDoc.data().stripe.customerRef, source)
+    );
   });

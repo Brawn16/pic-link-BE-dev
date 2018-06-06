@@ -95,3 +95,35 @@ exports.findWaterMarkedByOriginal = originalPath => {
       return { imageId, path };
     });
 };
+
+exports.getImageById = id =>
+  db
+    .collection("images")
+    .doc(id)
+    .get();
+
+exports.updateUserPurchasedImages = (uid, imageDoc) => {
+  const { original } = imageDoc.data();
+  const imageId = imageDoc.id;
+  const userRef = db.collection("users").doc(uid);
+  return userRef.then(userDoc => {
+    const matched = userDoc.data().matchedImages;
+    const updatedWaterMarked = matched.watermarked.filter(img => img.imageId !== imageId);
+    const updatedPurchased = [...matched.purchased, { imageId, path: original }];
+    return userRef.set(
+      {
+        matchedImages: {
+          watermarked: updatedWaterMarked,
+          purchased: updatedPurchased
+        }
+      },
+      { merge: true }
+    );
+  });
+};
+
+exports.getDoc = (collection, id) =>
+  db
+    .collection(collection)
+    .doc(id)
+    .get();
